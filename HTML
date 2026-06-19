@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบลาแพทย์ประจำบ้าน Family Medicine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Sarabun', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+            },
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background-color: #f8fafc;
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    @media print {
+      body > *:not(#printContainer) {
+        display: none !important;
+      }
+      #printContainer {
+        display: block !important;
+        background: white !important;
+        color: black !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center space-x-3">
+          <div class="bg-primary-600 text-white p-2.5 rounded-xl shadow-md shadow-primary-600/20">
+            <i class="fa-solid fa-notes-medical text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-slate-900 leading-tight">ระบบลาแพทย์ประจำบ้าน</h1>
+            <p class="text-xs text-slate-500 font-medium">Family Medicine Residency Leave System</p>
+          </div>
+        </div>
+        
+        <!-- User Badge & Logout -->
+        <div id="userBadge" class="hidden flex items-center space-x-4">
+          <div class="text-right hidden sm:block">
+            <div id="badgeUserName" class="text-sm font-semibold text-slate-800">-</div>
+            <div id="badgeUserRole" class="text-xs text-primary-600 font-medium">-</div>
+          </div>
+          <button onclick="logout()" class="flex items-center space-x-2 px-3.5 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span class="hidden sm:inline">ออกจากระบบ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white px-8 py-6 rounded-2xl shadow-xl flex flex-col items-center space-y-4 max-w-xs text-center border border-slate-100">
+        <div class="relative w-12 h-12">
+          <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-t-primary-600 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+        </div>
+        <p id="loadingText" class="text-sm font-semibold text-slate-700">กำลังประมวลผล...</p>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 1: LOGIN ================= -->
+    <section id="loginPage" class="fade-in max-w-md mx-auto my-12 hidden">
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+        <div class="p-8 bg-gradient-to-br from-primary-700 to-primary-800 text-white text-center relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 opacity-10 text-8xl">
+            <i class="fa-solid fa-stethoscope"></i>
+          </div>
+          <i class="fa-solid fa-hospital-user text-5xl mb-4 opacity-90"></i>
+          <h2 class="text-2xl font-bold">เข้าสู่ระบบ</h2>
+          <p class="text-primary-100 text-xs mt-1">กรุณาใช้อีเมลที่ลงทะเบียนไว้ในระบบ</p>
+        </div>
+        
+        <div class="p-8">
+          <form onsubmit="handleLogin(event)" class="space-y-6">
+            <div>
+              <label for="loginEmail" class="block text-sm font-semibold text-slate-700 mb-2">ที่อยู่อีเมล (Email Address)</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <i class="fa-solid fa-envelope"></i>
+                </span>
+                <input type="email" id="loginEmail" required placeholder="name@domain.com"
+                  class="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium">
+              </div>
+            </div>
+            
+            <button type="submit" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary-600/20 text-sm">
+              เข้าสู่ระบบ <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 2: RESIDENT PORTAL ================= -->
+    <section id="residentPortal" class="fade-in space-y-8 hidden">
+      <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-teal-900">สวัสดี, <span id="resWelcomeName">-</span></h2>
+          <p class="text-xs text-teal-700 font-medium mt-0.5">รหัสแพทย์ประจำบ้าน: <span id="resWelcomeId">-</span> | ปีการศึกษา: ปี <span id="resWelcomeYear">-</span></p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="printResidentPortalReport()" class="px-5 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-md transition-all text-sm flex items-center space-x-2">
+            <i class="fa-solid fa-print"></i>
+            <span>พิมพ์รายงาน / PDF</span>
+          </button>
+          <button onclick="openLeaveModal()" class="px-5 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-bold rounded-xl shadow-md shadow-primary-600/10 transition-all text-sm flex items-center space-x-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>ยื่นใบลาใหม่</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Leave Balances Dashboard -->
+      <div>
+        <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
+          <i class="fa-solid fa-chart-pie text-primary-600"></i>
+          <span>สิทธิ์วันลาคงเหลือประจำปี</span>
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-teal-600">
+              <i class="fa-solid fa-umbrella-beach"></i>
+            </div>
+            <div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 mb-4">
+                <i class="fa-solid fa-umbrella-beach mr-1"></i> ลาพักร้อน / พักผ่อน
+              </span>
+              <div class="flex items-baseline space-x-2">
+                <span id="vacationRemaining" class="text-3xl font-extrabold text-slate-900">-</span>
+                <span class="text-slate-400 text-sm font-medium">วันคงเหลือ</span>
+              </div>
+            </div>
+            <div class="mt-6">
+              <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1.5">
+                <span>ใช้ไปแล้ว <span id="vacationUsed">-</span> วัน</span>
+                <span>สิทธิ์ทั้งหมด <span id="vacationLimit">-</span> วัน</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="vacationProgress" class="bg-teal-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-rose-600">
+              <i class="fa-solid fa-heart-crack"></i>
+            </div>
+            <div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 mb-4">
+                <i class="fa-solid fa-kit-medical mr-1"></i> ลาป่วย
+              </span>
+              <div class="flex items-baseline space-x-2">
+                <span id="sickUsedCard" class="text-3xl font-extrabold text-slate-900">-</span>
+                <span class="text-slate-400 text-sm font-medium">วันใช้ไป</span>
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-50">
+              <p class="text-xs text-slate-500 font-medium flex items-center">
+                <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i> ลาป่วยได้ตามจริงที่เป็นโรค
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-amber-600">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 mb-4">
+                <i class="fa-solid fa-business-time mr-1"></i> ลากิจ
+              </span>
+              <div class="flex items-baseline space-x-2">
+                <span id="personalUsedCard" class="text-3xl font-extrabold text-slate-900">-</span>
+                <span class="text-slate-400 text-sm font-medium">วันใช้ไป</span>
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-50">
+              <p class="text-xs text-slate-500 font-medium flex items-center">
+                <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i> ลากิจจำเป็นเมื่อมีธุระส่วนตัว
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-clock-rotate-left text-primary-600"></i>
+            <span>ประวัติการลาพัก/ลาป่วยของคุณ</span>
+          </h3>
+          <span id="historyCount" class="inline-flex px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">0 รายการ</span>
+        </div>
+        
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                <th class="px-6 py-4">รหัสใบลา</th>
+                <th class="px-6 py-4">ประเภท</th>
+                <th class="px-6 py-4">ระยะเวลา</th>
+                <th class="px-6 py-4 text-center">จำนวนวัน</th>
+                <th class="px-6 py-4">เหตุผลการลา</th>
+                <th class="px-6 py-4">อาจารย์ที่ปรึกษา</th>
+                <th class="px-6 py-4">ผู้สลับเวร (ถ้ามี)</th>
+                <th class="px-6 py-4 text-center">สถานะ</th>
+                <th class="px-6 py-4 text-center">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="residentHistoryBody" class="divide-y divide-slate-100 text-sm font-medium">
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="noHistoryMsg" class="hidden py-16 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
+          <i class="fa-solid fa-folder-open text-4xl opacity-50"></i>
+          <p class="text-sm font-medium">ยังไม่พบประวัติการส่งใบลา</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 3: MENTOR PORTAL ================= -->
+    <section id="mentorPortal" class="fade-in space-y-8 hidden">
+      <div class="bg-gradient-to-r from-primary-800 to-primary-950 text-white rounded-3xl p-8 relative overflow-hidden shadow-lg">
+        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <span class="inline-flex px-3 py-1 bg-primary-700/50 text-primary-200 text-xs font-bold rounded-full mb-3 backdrop-blur-sm">
+          อาจารย์ที่ปรึกษา (Mentor Portal)
+        </span>
+        <h2 class="text-2xl font-bold text-white">เรียน อาจารย์ <span id="mentorWelcomeName">-</span></h2>
+        <p class="text-primary-200 text-xs mt-1">ยินดีต้อนรับสู่ระบบพิจารณาอนุมัติใบลาและประเมินภาพรวมแพทย์ประจำบ้านทั้งหมดในแผนก</p>
+      </div>
+
+      <!-- Navigation Tabs for Mentor Portal -->
+      <div class="border-b border-slate-200">
+        <nav class="flex space-x-6" aria-label="Tabs">
+          <button onclick="switchMentorTab('pending')" id="tabBtn-pending" class="border-primary-600 text-primary-600 border-b-2 py-4 px-1 text-sm font-bold flex items-center space-x-2">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span>ใบลาค้างอนุมัติถึงท่าน</span>
+          </button>
+          <button onclick="switchMentorTab('dashboard')" id="tabBtn-dashboard" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-4 px-1 text-sm font-bold flex items-center space-x-2">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>ภาพรวมการลาแพทย์ประจำบ้านทั้งหมด</span>
+          </button>
+          <button onclick="switchMentorTab('history')" id="tabBtn-history" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-4 px-1 text-sm font-bold flex items-center space-x-2">
+            <i class="fa-solid fa-check-double"></i>
+            <span>ประวัติการทำรายการโดยท่าน</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- TAB Content 1: Pending Leaves -->
+      <div id="mentorTab-pending" class="space-y-4">
+        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+          <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+          <span>รายการใบลาที่รออาจารย์อนุมัติ</span>
+        </h3>
+        
+        <div id="pendingRequestsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </div>
+
+        <div id="noPendingRequestsMsg" class="hidden bg-white py-16 border border-slate-200 rounded-2xl text-center text-slate-400 flex flex-col items-center justify-center space-y-3 shadow-sm">
+          <i class="fa-solid fa-circle-check text-4xl text-teal-500 opacity-80"></i>
+          <p class="text-sm font-semibold text-slate-700">ไม่มีใบลาค้างพิจารณาถึงท่านในขณะนี้</p>
+          <p class="text-xs text-slate-400">เมื่อมีแพทย์ประจำบ้านยื่นใบลาโดยระบุชื่อท่าน ระบบจะแสดงคำขอลาที่นี่</p>
+        </div>
+      </div>
+
+      <!-- TAB Content 2: Overall Leave Dashboard -->
+      <div id="mentorTab-dashboard" class="space-y-6 hidden">
+        <!-- Search and Filter -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="relative flex-grow max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="mentorSearchResident" oninput="filterDashboardResidents()" placeholder="ค้นหาตามชื่อ, ชั้นปี หรืออาจารย์ที่ปรึกษา..."
+              class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+          </div>
+          <div class="flex items-center space-x-2 text-xs font-semibold text-slate-400">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>อาจารย์ทุกท่านสามารถกดคลิกแถวเพื่อดูรายละเอียดวันลาแยกรายบุคคลได้</span>
+          </div>
+        </div>
+
+        <!-- Supervised Residents Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <i class="fa-solid fa-user-md text-primary-600"></i>
+              <span>ข้อมูลสถิติวันลาสะสมแพทย์ประจำบ้านทั้งหมด</span>
+            </h3>
+          </div>
+          
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                  <th class="px-6 py-4">รหัสแพทย์</th>
+                  <th class="px-6 py-4">ชื่อ-นามสกุล</th>
+                  <th class="px-6 py-4 text-center">ชั้นปี</th>
+                  <th class="px-6 py-4">อาจารย์ที่ปรึกษา</th>
+                  <th class="px-6 py-4">ลาพักร้อนคงเหลือ / สิทธิ์</th>
+                  <th class="px-6 py-4 text-center">ลาป่วย (วัน)</th>
+                  <th class="px-6 py-4 text-center">ลากิจ (วัน)</th>
+                  <th class="px-6 py-4 text-center">ค้างพิจารณา</th>
+                  <th class="px-6 py-4 text-center">การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="mentorDashboardBody" class="divide-y divide-slate-100 text-sm font-medium">
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="noDashboardResidentsMsg" class="hidden py-16 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
+            <i class="fa-solid fa-users-slash text-4xl opacity-50"></i>
+            <p class="text-sm font-medium">ไม่พบรายชื่อแพทย์ประจำบ้านในระบบ</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB Content 3: Action History -->
+      <div id="mentorTab-history" class="space-y-4 hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <i class="fa-solid fa-check-double text-slate-500"></i>
+              <span>ประวัติการอนุมัติ/ปฏิเสธโดยอาจารย์</span>
+            </h3>
+            <span id="mentorHistoryCount" class="inline-flex px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">0 รายการ</span>
+          </div>
+          
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                  <th class="px-6 py-4">รหัสใบลา</th>
+                  <th class="px-6 py-4">แพทย์ผู้ลา</th>
+                  <th class="px-6 py-4">ประเภท</th>
+                  <th class="px-6 py-4">ระยะเวลา</th>
+                  <th class="px-6 py-4 text-center">จำนวนวัน</th>
+                  <th class="px-6 py-4 text-center">สถานะ</th>
+                  <th class="px-6 py-4">บันทึกเพิ่มเติม/ปฏิเสธ</th>
+                  <th class="px-6 py-4 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="mentorHistoryBody" class="divide-y divide-slate-100 text-sm font-medium">
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="noMentorHistoryMsg" class="hidden py-16 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
+            <i class="fa-solid fa-folder-open text-4xl opacity-50"></i>
+            <p class="text-sm font-medium">ยังไม่พบประวัติการทำรายการ</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BOTH ROLE SELECTOR ================= -->
+    <section id="roleSelectionPage" class="fade-in max-w-md mx-auto my-12 hidden">
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 text-center space-y-6">
+        <i class="fa-solid fa-users-gear text-5xl text-primary-600 mb-2"></i>
+        <h2 class="text-2xl font-bold text-slate-900">เลือกพื้นที่ปฏิบัติงาน</h2>
+        <p class="text-xs text-slate-500">คุณมีบทบาททั้งแพทย์ประจำบ้านและอาจารย์ที่ปรึกษาในระบบ</p>
+        
+        <div class="flex flex-col space-y-4 pt-4">
+          <button onclick="selectRole('resident')" class="py-4 px-6 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-primary-600 text-slate-800 font-bold rounded-2xl shadow-sm text-sm transition-all flex items-center justify-between">
+            <span class="flex items-center"><i class="fa-solid fa-user-md mr-3 text-lg text-primary-600"></i> ฝั่งแพทย์ประจำบ้าน (Resident)</span>
+            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+          </button>
+          
+          <button onclick="selectRole('mentor')" class="py-4 px-6 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-primary-600 text-slate-800 font-bold rounded-2xl shadow-sm text-sm transition-all flex items-center justify-between">
+            <span class="flex items-center"><i class="fa-solid fa-user-tie mr-3 text-lg text-primary-600"></i> ฝั่งอาจารย์ที่ปรึกษา (Mentor)</span>
+            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MODAL: LEAVE SUBMISSION/EDIT FORM ================= -->
+    <div id="leaveModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] fade-in">
+        <div class="px-6 py-5 bg-gradient-to-r from-primary-700 to-primary-800 text-white flex justify-between items-center">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <h3 id="leaveModalTitle" class="text-lg font-bold">แบบฟอร์มขอส่งใบลาใหม่</h3>
+          </div>
+          <button onclick="closeLeaveModal()" class="text-white hover:text-primary-100 transition-colors text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <form onsubmit="handleLeaveSubmit(event)" class="overflow-y-auto custom-scrollbar flex-grow p-6 space-y-6">
+          <input type="hidden" id="formResidentEmail">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="formLeaveType" class="block text-sm font-semibold text-slate-700 mb-2">ประเภทการลา <span class="text-rose-500">*</span></label>
+              <select id="formLeaveType" required onchange="onLeaveTypeChange()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors">
+                <option value="vacation">ลาพักร้อน / พักผ่อน</option>
+                <option value="sick">ลาป่วย</option>
+                <option value="personal">ลากิจ</option>
+                <option value="maternity">ลาคลอด</option>
+                <option value="military">ลาเกณฑ์ทหาร</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="formDepartment" class="block text-sm font-semibold text-slate-700 mb-2">แผนก/กลุ่มงานที่หมุนเวียนในขณะนี้ <span class="text-rose-500">*</span></label>
+              <input type="text" id="formDepartment" required placeholder="เช่น OPD, IPD, ER, Wards"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
+            <div>
+              <label for="formStartDate" class="block text-sm font-semibold text-slate-700 mb-2">วันที่เริ่มต้น <span class="text-rose-500">*</span></label>
+              <input type="date" id="formStartDate" required onchange="calculateDuration()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div>
+              <label for="formEndDate" class="block text-sm font-semibold text-slate-700 mb-2">วันที่สิ้นสุด <span class="text-rose-500">*</span></label>
+              <input type="date" id="formEndDate" required onchange="calculateDuration()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div class="bg-primary-50 border border-primary-100 p-3.5 rounded-xl text-center">
+              <span class="block text-xs font-semibold text-primary-700">จำนวนวันลาคำนวณได้</span>
+              <span id="formTotalDays" class="text-xl font-black text-primary-800">0</span>
+              <span class="text-xs text-primary-700 font-semibold"> วัน</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="formReason" class="block text-sm font-semibold text-slate-700 mb-2">เหตุผลการลา <span class="text-rose-500">*</span></label>
+            <textarea id="formReason" required rows="2" placeholder="ระบุเหตุผลการลาพักร้อนหรือลาป่วยอย่างชัดเจน"
+              class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="formSubstitute" class="block text-sm font-semibold text-slate-700 mb-2">ผู้สลับปฏิบัติงานแทน (Substitute Resident) <span class="text-slate-400 font-normal text-xs">(ถ้ามี)</span></label>
+              <select id="formSubstitute"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors">
+                <option value="">-- เลือกผู้สลับเวร (ถ้ามี) --</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="formMentor" class="block text-sm font-semibold text-slate-700 mb-2">อาจารย์ที่ปรึกษาพิจารณาใบลา <span class="text-rose-500">*</span></label>
+              <select id="formMentor" required
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors">
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="formContactAddress" class="block text-sm font-semibold text-slate-700 mb-2">ที่อยู่ติดต่อระหว่างลา <span class="text-rose-500">*</span></label>
+              <input type="text" id="formContactAddress" required placeholder="ระบุที่พัก เช่น ที่บ้านพักกรุงเทพฯ หรือโรงแรม"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div>
+              <label for="formPhoneNumber" class="block text-sm font-semibold text-slate-700 mb-2">เบอร์โทรศัพท์ที่ติดต่อได้ <span class="text-rose-500">*</span></label>
+              <input type="tel" id="formPhoneNumber" required placeholder="08xxxxxxxx"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium">
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+            <button type="button" onclick="closeLeaveModal()"
+              class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">
+              ยกเลิก
+            </button>
+            <button type="submit" id="formSubmitBtn"
+              class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-primary-600/10">
+              ส่งใบลาพิจารณา
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: MENTOR REJECTION ================= -->
+    <div id="rejectModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-3xl shadow-xl max-w-md w-full mx-4 overflow-hidden border border-slate-100 p-6 space-y-4 fade-in">
+        <div class="flex items-center space-x-3 text-rose-600">
+          <i class="fa-solid fa-circle-exclamation text-2xl animate-pulse"></i>
+          <h3 class="text-lg font-bold">ปฏิเสธใบลาพัก/ลาป่วย</h3>
+        </div>
+        <p class="text-xs text-slate-500 font-medium">ระบุเหตุผลในการปฏิเสธการลานี้เพื่อชี้แจงให้แพทย์ประจำบ้านทราบ</p>
+        
+        <div>
+          <label for="rejectReasonText" class="block text-sm font-semibold text-slate-700 mb-2">เหตุผลในการไม่อนุมัติ <span class="text-rose-500">*</span></label>
+          <textarea id="rejectReasonText" required rows="3" placeholder="ตัวอย่าง: ติดภารกิจจัดสอบประจำปี หรือ มีเวรปฎิบัติงานในวันดังกล่าวที่หาผู้สลับเวรไม่ได้"
+            class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm font-medium"></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-2">
+          <button type="button" onclick="closeRejectModal()"
+            class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+            ยกเลิก
+          </button>
+          <button type="button" onclick="submitRejection()"
+            class="px-5 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-sm font-bold rounded-lg transition-all shadow-md">
+            ยืนยันปฏิเสธ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: MENTOR EDIT APPROVED REQUEST ================= -->
+    <div id="mentorEditModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] fade-in">
+        <div class="px-6 py-5 bg-gradient-to-r from-teal-700 to-teal-800 text-white flex justify-between items-center">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-user-pen"></i>
+            <h3 id="mentorEditModalTitle" class="text-lg font-bold">อาจารย์ที่ปรึกษาแก้ไขใบลาที่อนุมัติแล้ว</h3>
+          </div>
+          <button onclick="closeMentorEditModal()" class="text-white hover:text-teal-100 transition-colors text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <form onsubmit="handleMentorEditSubmit(event)" class="overflow-y-auto custom-scrollbar flex-grow p-6 space-y-6">
+          <input type="hidden" id="mentorEditRequestId">
+          
+          <!-- Resident Info Display -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <span class="block text-xs font-semibold text-slate-500">แพทย์ผู้ลา (Resident)</span>
+              <span id="mentorEditResidentInfo" class="text-sm font-bold text-slate-800">-</span>
+            </div>
+            <div class="text-right">
+              <span class="block text-xs font-semibold text-slate-500">รหัสใบลา</span>
+              <span id="mentorEditRequestIdDisplay" class="text-sm font-bold text-teal-700">-</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="mentorEditLeaveType" class="block text-sm font-semibold text-slate-700 mb-2">ประเภทการลา <span class="text-rose-500">*</span></label>
+              <select id="mentorEditLeaveType" required onchange="onMentorEditTypeChange()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors">
+                <option value="vacation">ลาพักร้อน / พักผ่อน</option>
+                <option value="sick">ลาป่วย</option>
+                <option value="personal">ลากิจ</option>
+                <option value="maternity">ลาคลอด</option>
+                <option value="military">ลาเกณฑ์ทหาร</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="mentorEditDepartment" class="block text-sm font-semibold text-slate-700 mb-2">แผนก/กลุ่มงานที่หมุนเวียนในขณะนี้ <span class="text-rose-500">*</span></label>
+              <input type="text" id="mentorEditDepartment" required placeholder="เช่น OPD, IPD, ER, Wards"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
+            <div>
+              <label for="mentorEditStartDate" class="block text-sm font-semibold text-slate-700 mb-2">วันที่เริ่มต้น <span class="text-rose-500">*</span></label>
+              <input type="date" id="mentorEditStartDate" required onchange="calculateMentorEditDuration()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div>
+              <label for="mentorEditEndDate" class="block text-sm font-semibold text-slate-700 mb-2">วันที่สิ้นสุด <span class="text-rose-500">*</span></label>
+              <input type="date" id="mentorEditEndDate" required onchange="calculateMentorEditDuration()"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div class="bg-teal-50 border border-teal-100 p-3.5 rounded-xl text-center">
+              <span class="block text-xs font-semibold text-teal-700">จำนวนวันลาคำนวณได้</span>
+              <span id="mentorEditTotalDays" class="text-xl font-black text-teal-800">0</span>
+              <span class="text-xs text-teal-700 font-semibold"> วัน</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="mentorEditReason" class="block text-sm font-semibold text-slate-700 mb-2">เหตุผลการลา <span class="text-rose-500">*</span></label>
+            <textarea id="mentorEditReason" required rows="2" placeholder="ระบุเหตุผลการลาพักร้อนหรือลาป่วยอย่างชัดเจน"
+              class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="mentorEditSubstitute" class="block text-sm font-semibold text-slate-700 mb-2">ผู้สลับปฏิบัติงานแทน (Substitute Resident)</label>
+              <select id="mentorEditSubstitute"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors">
+                <option value="">-- เลือกผู้สลับเวร (ถ้ามี) --</option>
+              </select>
+            </div>
+            
+            <div class="flex flex-col justify-end">
+              <span class="block text-xs text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-xl font-medium">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                การแก้ไขใบลาที่อนุมัติไปแล้วนี้ จะส่งผลต่อยอดวันลาคงเหลือของแพทย์โดยตรง และระบบจะส่งอีเมลแจ้งผู้ลาและผู้สลับเวรอัตโนมัติ
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label for="mentorEditContactAddress" class="block text-sm font-semibold text-slate-700 mb-2">ที่อยู่ติดต่อระหว่างลา <span class="text-rose-500">*</span></label>
+              <input type="text" id="mentorEditContactAddress" required placeholder="ระบุที่พัก เช่น ที่บ้านพักกรุงเทพฯ หรือโรงแรม"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium">
+            </div>
+            
+            <div>
+              <label for="mentorEditPhoneNumber" class="block text-sm font-semibold text-slate-700 mb-2">เบอร์โทรศัพท์ที่ติดต่อได้ <span class="text-rose-500">*</span></label>
+              <input type="tel" id="mentorEditPhoneNumber" required placeholder="08xxxxxxxx"
+                class="block w-full py-2.5 px-3.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium">
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+            <button type="button" onclick="closeMentorEditModal()"
+              class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">
+              ยกเลิก
+            </button>
+            <button type="submit" id="mentorEditSubmitBtn"
+              class="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-teal-600/10">
+              บันทึกการแก้ไข
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: MENTOR DRILL-DOWN INDIVIDUAL RESIDENT VIEW ================= -->
+    <div id="drilldownModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-3xl shadow-xl max-w-4xl w-full mx-4 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] fade-in">
+        <div class="px-6 py-5 bg-gradient-to-r from-primary-800 to-primary-950 text-white flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-id-card-clip text-xl"></i>
+            <div>
+              <h3 class="text-base font-bold" id="drilldownResidentName">-</h3>
+              <p class="text-xs text-primary-200 font-medium" id="drilldownResidentMeta">-</p>
+            </div>
+          </div>
+          <button onclick="closeDrilldownModal()" class="text-white hover:text-primary-100 transition-colors text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <div class="overflow-y-auto custom-scrollbar flex-grow p-6 space-y-6 bg-slate-50">
+          
+          <!-- Leave Balances -->
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3.5 flex items-center"><i class="fa-solid fa-chart-pie mr-1.5"></i> สรุปสิทธิ์วันลาคงเหลือปัจจุบัน</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <span class="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md inline-self-start mb-2"><i class="fa-solid fa-umbrella-beach mr-1"></i> ลาพักร้อน</span>
+                <div class="flex items-baseline space-x-1.5 my-1">
+                  <span id="drilldownVacationRemaining" class="text-2xl font-black text-slate-900">-</span>
+                  <span class="text-xs text-slate-400 font-medium">วันคงเหลือ</span>
+                </div>
+                <p class="text-xs text-slate-400">ใช้ไป <span id="drilldownVacationUsed">-</span> จากทั้งหมด <span id="drilldownVacationLimit">-</span> วัน</p>
+              </div>
+              <div class="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <span class="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md inline-self-start mb-2"><i class="fa-solid fa-heart-crack mr-1"></i> ลาป่วย</span>
+                <div class="flex items-baseline space-x-1.5 my-1">
+                  <span id="drilldownSickUsed" class="text-2xl font-black text-slate-900">-</span>
+                  <span class="text-xs text-slate-400 font-medium">วันใช้ไป</span>
+                </div>
+                <p class="text-xs text-slate-400">ลาสะสมตามจริงที่เป็นโรค</p>
+              </div>
+              <div class="bg-white p-4.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md inline-self-start mb-2"><i class="fa-solid fa-briefcase mr-1"></i> ลากิจ</span>
+                <div class="flex items-baseline space-x-1.5 my-1">
+                  <span id="drilldownPersonalUsed" class="text-2xl font-black text-slate-900">-</span>
+                  <span class="text-xs text-slate-400 font-medium">วันใช้ไป</span>
+                </div>
+                <p class="text-xs text-slate-400">ลาสะสมธุระส่วนตัว</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leave History -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติรายการขอลาทั้งหมด</h4>
+              <span id="drilldownHistoryCount" class="inline-flex px-2 py-0.5 bg-slate-200 text-slate-600 text-xs font-bold rounded-full">0 รายการ</span>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                    <th class="px-5 py-3.5">รหัสใบลา</th>
+                    <th class="px-5 py-3.5">ประเภท</th>
+                    <th class="px-5 py-3.5">วันที่</th>
+                    <th class="px-5 py-3.5 text-center">จำนวนวัน</th>
+                    <th class="px-5 py-3.5">เหตุผล</th>
+                    <th class="px-5 py-3.5">ผู้พิจารณา/ผู้แทน</th>
+                    <th class="px-5 py-3.5 text-center">สถานะ</th>
+                    <th class="px-5 py-3.5 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="drilldownHistoryBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                </tbody>
+              </table>
+            </div>
+            
+            <div id="noDrilldownHistoryMsg" class="hidden py-12 text-center text-slate-400 flex flex-col items-center justify-center space-y-2">
+              <i class="fa-solid fa-folder-open text-3xl opacity-50"></i>
+              <p class="text-xs font-medium">ยังไม่พบประวัติการลาของแพทย์คนนี้</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="px-6 py-4.5 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
+          <button onclick="printDrilldownReport()"
+            class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-md flex items-center space-x-1.5">
+            <i class="fa-solid fa-print"></i>
+            <span>พิมพ์รายงาน / PDF</span>
+          </button>
+          <button onclick="closeDrilldownModal()"
+            class="px-5 py-2 bg-slate-600 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow-md">
+            ปิดหน้านี้
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-400 font-medium">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>© 2026 Residency Leave Management System. กองฝึกอบรมแพทย์ประจำบ้านเวชศาสตร์ครอบครัว</p>
+    </div>
+  </footer>
+
+  <!-- Core JavaScript Logic -->
+  <script>
+    // สำหรับโฮสต์ภายนอก (เช่น Vercel, Netlify): นำ URL ของ Apps Script Web App ที่ได้จากการ Deploy มาใส่ที่นี่
+    // ตัวอย่าง: const APPS_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxz_zhKZXcXpJ1wWseh40e-U-5smTtwRoUjKoC-lS2K_4Bc5eSb_cl-N9Y-6Iw0JAMkWg/exec";
+    const APPS_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxz_zhKZXcXpJ1wWseh40e-U-5smTtwRoUjKoC-lS2K_4Bc5eSb_cl-N9Y-6Iw0JAMkWg/exec";
+
+    let currentUserEmail = '';
+    let currentUserRole = '';
+    let currentUserName = '';
+    let loadedResidentData = null;
+    let selectedRequestIdForRejection = null;
+    let currentEditingRequestId = null;
+    
+    let currentMentorTab = 'pending';
+    let loadedMentorDashboardData = null;
+    let loadedMentorResidentsList = null;
+    let loadedRequestsMap = {};
+    let currentDrilldownResident = null;
+    let currentDrilldownHistory = null;
+    
+    window.onload = function() {
+      let requestId = "";
+      let page = "";
+      
+      // อ่าน URL Query Parameters เมื่อรันแบบ Static Web (Vercel/Netlify)
+      if (typeof window !== 'undefined' && window.location) {
+        const urlParams = new URLSearchParams(window.location.search);
+        requestId = urlParams.get('requestId') || '';
+        page = urlParams.get('page') || '';
+      }
+      
+      // อ่านจาก Scriptlet เมื่อรันแบบ Server-side ใน Apps Script
+      try {
+        if ("<?= requestId ?>" !== "" && "<?= requestId ?>".indexOf("<" + "?=") === -1) {
+          requestId = "<?= requestId ?>";
+        }
+        if ("<?= page ?>" !== "" && "<?= page ?>".indexOf("<" + "?=") === -1) {
+          page = "<?= page ?>";
+        }
+      } catch (e) {
+        // ละเว้นกรณีเกิดข้อผิดพลาดในการตรวจสอบตัวแปรฝั่ง Server
+      }
+      
+      showPage('loginPage');
+      
+      const savedEmail = localStorage.getItem('rfm_leave_email');
+      if (savedEmail) {
+        document.getElementById('loginEmail').value = savedEmail;
+      }
+    };
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      toast.className = `p-4 rounded-xl shadow-lg border text-sm font-medium flex items-center space-x-3 pointer-events-auto fade-in transition-all duration-300 transform translate-x-12`;
+      
+      let icon = '';
+      if (type === 'success') {
+        toast.className += ' bg-teal-50 border-teal-100 text-teal-800';
+        icon = '<i class="fa-solid fa-circle-check text-teal-500 text-base"></i>';
+      } else if (type === 'error') {
+        toast.className += ' bg-rose-50 border-rose-100 text-rose-800';
+        icon = '<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i>';
+      } else {
+        toast.className += ' bg-blue-50 border-blue-100 text-blue-800';
+        icon = '<i class="fa-solid fa-circle-info text-blue-500 text-base"></i>';
+      }
+      
+      toast.innerHTML = `${icon} <span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-x-12');
+      }, 10);
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-12');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 4000);
+    }
+
+    function showPage(pageId) {
+      ['loginPage', 'residentPortal', 'mentorPortal', 'roleSelectionPage'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(pageId).classList.remove('hidden');
+    }
+
+    function callBackend(funcName, ...args) {
+      return new Promise((resolve, reject) => {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)[funcName](...args);
+        } else if (typeof APPS_SCRIPT_WEBAPP_URL !== 'undefined' && APPS_SCRIPT_WEBAPP_URL !== "") {
+          // โหมดดึงข้อมูลจากภายนอก (CORS Safe โดยส่งเป็น text/plain ป้องกัน Preflight OPTIONS)
+          fetch(APPS_SCRIPT_WEBAPP_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({ action: funcName, arguments: args })
+          })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error("HTTP error! Status: " + res.status);
+            }
+            return res.json();
+          })
+          .then(response => {
+            if (response && response.success) {
+              resolve(response.data);
+            } else {
+              reject(response ? response.message : "เกิดข้อผิดพลาดในการดึงข้อมูลจาก API");
+            }
+          })
+          .catch(err => {
+            console.error("API Call error:", err);
+            reject("เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว: " + err.toString());
+          });
+        } else {
+          console.warn("Running in local mock mode (google.script.run and APPS_SCRIPT_WEBAPP_URL not detected)");
+          setTimeout(() => {
+            mockBackendResponse(funcName, args, resolve, reject);
+          }, 600);
+        }
+      });
+    }
+
+    function setGlobalLoading(show, text = 'กำลังโหลดข้อมูล...') {
+      const overlay = document.getElementById('loadingOverlay');
+      const textEl = document.getElementById('loadingText');
+      if (show) {
+        textEl.textContent = text;
+        overlay.classList.remove('hidden');
+      } else {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) return;
+      
+      setGlobalLoading(true, "กำลังตรวจสอบข้อมูลผู้ใช้งาน...");
+      
+      try {
+        const response = await callBackend('checkUserRole', email);
+        setGlobalLoading(false);
+        
+        if (response.success) {
+          currentUserEmail = email;
+          localStorage.setItem('rfm_leave_email', email);
+          document.getElementById('userBadge').classList.remove('hidden');
+          
+          if (response.role === 'both') {
+            currentUserName = response.mentorName || response.residentProfile.name;
+            document.getElementById('badgeUserName').textContent = currentUserName;
+            document.getElementById('badgeUserRole').textContent = "แพทย์และอาจารย์";
+            showPage('roleSelectionPage');
+          } else if (response.role === 'mentor') {
+            currentUserRole = 'mentor';
+            currentUserName = response.mentorName;
+            document.getElementById('badgeUserName').textContent = currentUserName;
+            document.getElementById('badgeUserRole').textContent = "อาจารย์ที่ปรึกษา";
+            loadMentorPortal();
+          } else if (response.role === 'resident') {
+            currentUserRole = 'resident';
+            currentUserName = response.residentProfile.name;
+            document.getElementById('badgeUserName').textContent = currentUserName;
+            document.getElementById('badgeUserRole').textContent = "แพทย์ประจำบ้าน";
+            loadResidentPortal();
+          }
+        } else {
+          showToast(response.message, 'error');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์: " + err.toString(), 'error');
+      }
+    }
+
+    function selectRole(role) {
+      currentUserRole = role;
+      if (role === 'resident') {
+        loadResidentPortal();
+      } else {
+        loadMentorPortal();
+      }
+    }
+
+    function logout() {
+      currentUserEmail = '';
+      currentUserRole = '';
+      currentUserName = '';
+      loadedResidentData = null;
+      loadedMentorDashboardData = null;
+      document.getElementById('userBadge').classList.add('hidden');
+      showPage('loginPage');
+      showToast("ออกจากระบบสำเร็จแล้ว");
+    }
+
+    // ================= RESIDENT LOGIC =================
+
+    async function loadResidentPortal() {
+      setGlobalLoading(true, "กำลังโหลดข้อมูลส่วนบุคคล...");
+      showPage('residentPortal');
+      
+      try {
+        const data = await callBackend('getResidentData', currentUserEmail);
+        loadedResidentData = data;
+        
+        document.getElementById('resWelcomeName').textContent = data.profile.name;
+        document.getElementById('resWelcomeId').textContent = data.profile.id;
+        document.getElementById('resWelcomeYear').textContent = data.profile.year;
+        
+        const limit = data.profile.vacationLimit;
+        const used = data.profile.vacationUsed;
+        const remaining = Math.max(0, limit - used);
+        
+        document.getElementById('vacationRemaining').textContent = remaining;
+        document.getElementById('vacationUsed').textContent = used;
+        document.getElementById('vacationLimit').textContent = limit;
+        
+        const pct = limit > 0 ? (used / limit) * 100 : 0;
+        document.getElementById('vacationProgress').style.width = `${pct}%`;
+        
+        document.getElementById('sickUsedCard').textContent = data.profile.sickUsed;
+        document.getElementById('personalUsedCard').textContent = data.profile.personalUsed;
+        
+        const subSelect = document.getElementById('formSubstitute');
+        subSelect.innerHTML = '<option value="">-- เลือกผู้สลับเวร (ถ้ามี) --</option>';
+        data.residentsList.forEach(r => {
+          if (r.id !== data.profile.id) {
+            subSelect.innerHTML += `<option value="${r.id}">${r.name} (${r.id})</option>`;
+          }
+        });
+        
+        const mentorSelect = document.getElementById('formMentor');
+        mentorSelect.innerHTML = '<option value="">-- เลือกอาจารย์ที่ปรึกษา --</option>';
+        data.mentorsList.forEach(m => {
+          mentorSelect.innerHTML += `<option value="${m.email}|${m.name}">${m.name}</option>`;
+        });
+        
+        renderResidentHistory(data.history);
+        setGlobalLoading(false);
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("ไม่สามารถเรียกข้อมูลใบลาได้: " + err.toString(), 'error');
+      }
+    }
+
+    function renderResidentHistory(list) {
+      const tbody = document.getElementById('residentHistoryBody');
+      const noHistory = document.getElementById('noHistoryMsg');
+      tbody.innerHTML = '';
+      
+      document.getElementById('historyCount').textContent = `${list.length} รายการ`;
+      
+      if (!list || list.length === 0) {
+        noHistory.classList.remove('hidden');
+        return;
+      }
+      noHistory.classList.add('hidden');
+      
+      list.forEach(req => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+        
+        let statusBadge = '';
+        const status = req.status;
+        if (status === 'รออนุมัติ' || status === 'Pending Approval') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700 rounded-full"><i class="fa-solid fa-hourglass-start mr-1 mt-0.5"></i> รออนุมัติ</span>';
+        } else if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-teal-50 text-teal-700 rounded-full"><i class="fa-solid fa-circle-check mr-1 mt-0.5"></i> อนุมัติแล้ว</span>';
+        } else if (status === 'ปฏิเสธ' || status === 'Rejected') {
+          const tooltip = req.rejectReason ? `title="เหตุผล: ${req.rejectReason}"` : '';
+          statusBadge = `<span ${tooltip} class="cursor-help inline-flex px-2.5 py-1 text-xs font-semibold bg-rose-50 text-rose-700 rounded-full"><i class="fa-solid fa-circle-xmark mr-1 mt-0.5"></i> ปฏิเสธ</span>`;
+        } else if (status === 'ยกเลิกแล้ว') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-400 rounded-full"><i class="fa-solid fa-ban mr-1 mt-0.5"></i> ยกเลิกแล้ว</span>';
+        } else {
+          statusBadge = `<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-slate-50 text-slate-700 rounded-full">${status}</span>`;
+        }
+        
+        let actionButtons = '-';
+        if (status === 'รออนุมัติ' || status === 'Pending Approval') {
+          actionButtons = `
+            <div class="flex items-center justify-center space-x-2">
+              <button onclick="openEditModal('${req.id}')" class="px-2.5 py-1 text-xs font-bold text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-primary-100 flex items-center space-x-1">
+                <i class="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
+              </button>
+              <button onclick="cancelRequest('${req.id}', false)" class="px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-100 flex items-center space-x-1">
+                <i class="fa-solid fa-trash-can"></i> <span>ยกเลิก</span>
+              </button>
+            </div>
+          `;
+        } else if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          actionButtons = `
+            <button onclick="cancelRequest('${req.id}', true)" class="px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-100 flex items-center space-x-1 mx-auto block">
+              <i class="fa-solid fa-rotate-left"></i> <span>ยกเลิกใบลา</span>
+            </button>
+          `;
+        }
+        
+        const startStr = formatDateString(req.startDate);
+        const endStr = formatDateString(req.endDate);
+        
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-bold text-slate-700">${req.id}</td>
+          <td class="px-6 py-4"><span class="text-xs font-bold uppercase py-0.5 px-2 bg-slate-100 text-slate-600 rounded-md">${req.typeName}</span></td>
+          <td class="px-6 py-4 text-xs font-medium text-slate-500">${startStr} - ${endStr}</td>
+          <td class="px-6 py-4 text-center font-bold text-slate-900">${req.totalDays}</td>
+          <td class="px-6 py-4 text-slate-600 text-xs font-medium max-w-xs truncate" title="${req.reason}">${req.reason}</td>
+          <td class="px-6 py-4 text-slate-500 text-xs font-medium">${req.mentorName || '-'}</td>
+          <td class="px-6 py-4 text-slate-500 text-xs font-medium">${req.substituteName || '-'}</td>
+          <td class="px-6 py-4 text-center">${statusBadge}</td>
+          <td class="px-6 py-4 text-center">${actionButtons}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openLeaveModal() {
+      if (!loadedResidentData) return;
+      currentEditingRequestId = null;
+      
+      document.getElementById('leaveModalTitle').textContent = "แบบฟอร์มขอส่งใบลาใหม่";
+      document.getElementById('formSubmitBtn').textContent = "ส่งใบลาพิจารณา";
+      document.getElementById('formResidentEmail').value = currentUserEmail;
+      
+      document.getElementById('formLeaveType').value = 'vacation';
+      document.getElementById('formDepartment').value = '';
+      document.getElementById('formReason').value = '';
+      document.getElementById('formSubstitute').value = '';
+      document.getElementById('formMentor').selectedIndex = 0;
+      document.getElementById('formContactAddress').value = '';
+      document.getElementById('formPhoneNumber').value = '';
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('formStartDate').value = today;
+      document.getElementById('formEndDate').value = today;
+      
+      calculateDuration();
+      document.getElementById('leaveModal').classList.remove('hidden');
+    }
+
+    function openEditModal(requestId) {
+      if (!loadedResidentData) return;
+      
+      const req = loadedResidentData.history.find(h => h.id === requestId);
+      if (!req) return;
+      
+      currentEditingRequestId = requestId;
+      document.getElementById('leaveModalTitle').textContent = `แก้ไขใบลาเลขที่ ${requestId}`;
+      document.getElementById('formSubmitBtn').textContent = "บันทึกการแก้ไข";
+      document.getElementById('formResidentEmail').value = currentUserEmail;
+      
+      document.getElementById('formLeaveType').value = req.type;
+      document.getElementById('formDepartment').value = req.department || '';
+      document.getElementById('formReason').value = req.reason || '';
+      document.getElementById('formSubstitute').value = req.substituteId || '';
+      document.getElementById('formContactAddress').value = req.contactAddress || '';
+      document.getElementById('formPhoneNumber').value = req.phoneNumber || '';
+      
+      const mentorSelect = document.getElementById('formMentor');
+      for (let i = 0; i < mentorSelect.options.length; i++) {
+        const val = mentorSelect.options[i].value;
+        if (val && val.split('|')[0] === req.mentorEmail) {
+          mentorSelect.selectedIndex = i;
+          break;
+        }
+      }
+      
+      if (req.startDate) {
+        document.getElementById('formStartDate').value = new Date(req.startDate).toISOString().split('T')[0];
+      }
+      if (req.endDate) {
+        document.getElementById('formEndDate').value = new Date(req.endDate).toISOString().split('T')[0];
+      }
+      
+      calculateDuration();
+      document.getElementById('leaveModal').classList.remove('hidden');
+    }
+    
+    function closeLeaveModal() {
+      document.getElementById('leaveModal').classList.add('hidden');
+      currentEditingRequestId = null;
+    }
+
+    function onLeaveTypeChange() {
+      calculateDuration();
+    }
+
+    function calculateDuration() {
+      const start = document.getElementById('formStartDate').value;
+      const end = document.getElementById('formEndDate').value;
+      if (!start || !end) return;
+      
+      const sDate = new Date(start);
+      const eDate = new Date(end);
+      
+      if (eDate < sDate) {
+        document.getElementById('formEndDate').value = start;
+        document.getElementById('formTotalDays').textContent = "1";
+        return;
+      }
+      
+      const diffTime = Math.abs(eDate - sDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      document.getElementById('formTotalDays').textContent = diffDays;
+    }
+
+    async function handleLeaveSubmit(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('formResidentEmail').value;
+      const type = document.getElementById('formLeaveType').value;
+      const department = document.getElementById('formDepartment').value.trim();
+      const startDate = document.getElementById('formStartDate').value;
+      const endDate = document.getElementById('formEndDate').value;
+      const totalDays = Number(document.getElementById('formTotalDays').textContent);
+      const reason = document.getElementById('formReason').value.trim();
+      const substituteId = document.getElementById('formSubstitute').value;
+      const mentorRaw = document.getElementById('formMentor').value;
+      const contactAddress = document.getElementById('formContactAddress').value.trim();
+      const phoneNumber = document.getElementById('formPhoneNumber').value.trim();
+      
+      if (!mentorRaw) {
+        showToast("กรุณาเลือกอาจารย์ที่ปรึกษา", "error");
+        return;
+      }
+      
+      const [mentorEmail, mentorName] = mentorRaw.split('|');
+      
+      const requestData = {
+        residentEmail: email,
+        type: type,
+        department: department,
+        startDate: startDate,
+        endDate: endDate,
+        totalDays: totalDays,
+        reason: reason,
+        substituteId: substituteId,
+        mentorEmail: mentorEmail,
+        mentorName: mentorName,
+        contactAddress: contactAddress,
+        phoneNumber: phoneNumber
+      };
+      
+      closeLeaveModal();
+      
+      let backendFunc = 'submitLeaveRequest';
+      let loadingMessage = "กำลังยื่นใบลาต่ออาจารย์ที่ปรึกษา...";
+      
+      if (currentEditingRequestId) {
+        backendFunc = 'editLeaveRequest';
+        loadingMessage = "กำลังบันทึกการแก้ไขข้อมูลใบลา...";
+      }
+      
+      setGlobalLoading(true, loadingMessage);
+      
+      try {
+        let response;
+        if (currentEditingRequestId) {
+          response = await callBackend(backendFunc, currentEditingRequestId, requestData, currentUserEmail);
+        } else {
+          response = await callBackend(backendFunc, requestData);
+        }
+        
+        setGlobalLoading(false);
+        if (response.success) {
+          showToast(response.message, 'success');
+          loadResidentPortal();
+        } else {
+          showToast(response.message, 'error');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + err.toString(), 'error');
+      }
+    }
+
+    async function cancelRequest(requestId, isApproved) {
+      let confirmMsg = `ยืนยันการยกเลิกคำขอใบลาหมายเลข ${requestId} หรือไม่?`;
+      if (isApproved) {
+        confirmMsg = `⚠️ คำขอนี้ได้รับการอนุมัติไปแล้ว! ยืนยันที่จะยกเลิกใบลาหมายเลข ${requestId} ใช่หรือไม่?\n(ระบบจะยกเลิกใบลาและคืนสิทธิ์วันลาพักคงเหลือให้โดยอัตโนมัติ)`;
+      }
+      
+      if (!confirm(confirmMsg)) return;
+      
+      setGlobalLoading(true, "กำลังดำเนินการยกเลิกคำขอลา...");
+      
+      try {
+        const response = await callBackend('cancelLeaveRequest', requestId, currentUserEmail);
+        setGlobalLoading(false);
+        
+        if (response.success) {
+          showToast(response.message, 'success');
+          loadResidentPortal();
+        } else {
+          showToast(response.message, 'error');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการส่งคำขอยกเลิก: " + err.toString(), 'error');
+      }
+    }
+
+    // ================= MENTOR PORTAL LOGIC =================
+
+    function switchMentorTab(tabId) {
+      currentMentorTab = tabId;
+      
+      ['pending', 'dashboard', 'history'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const section = document.getElementById(`mentorTab-${t}`);
+        
+        if (t === tabId) {
+          btn.className = "border-primary-600 text-primary-600 border-b-2 py-4 px-1 text-sm font-bold flex items-center space-x-2";
+          section.classList.remove('hidden');
+        } else {
+          btn.className = "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 border-b-2 py-4 px-1 text-sm font-bold flex items-center space-x-2";
+          section.classList.add('hidden');
+        }
+      });
+      
+      if (tabId === 'dashboard' && !loadedMentorDashboardData) {
+        loadMentorDashboard();
+      }
+    }
+
+    async function loadMentorPortal() {
+      setGlobalLoading(true, "กำลังโหลดข้อมูลอาจารย์ที่ปรึกษา...");
+      showPage('mentorPortal');
+      
+      switchMentorTab('pending');
+      loadedMentorDashboardData = null;
+      
+      try {
+        const data = await callBackend('getMentorData', currentUserEmail);
+        document.getElementById('mentorWelcomeName').textContent = currentUserName;
+        loadedMentorResidentsList = data.residentsList;
+        renderPendingRequests(data.pending);
+        renderMentorHistory(data.history);
+        setGlobalLoading(false);
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("ไม่สามารถเรียกข้อมูลคำขอลาได้: " + err.toString(), 'error');
+      }
+    }
+
+    function renderPendingRequests(list) {
+      const container = document.getElementById('pendingRequestsContainer');
+      const noPending = document.getElementById('noPendingRequestsMsg');
+      container.innerHTML = '';
+      
+      if (!list || list.length === 0) {
+        noPending.classList.remove('hidden');
+        return;
+      }
+      noPending.classList.add('hidden');
+      
+      list.forEach(req => {
+        loadedRequestsMap[req.id] = req;
+        const card = document.createElement('div');
+        card.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-primary-500 hover:shadow-md transition-all flex flex-col justify-between space-y-5 fade-in";
+        
+        const startStr = formatDateString(req.startDate);
+        const endStr = formatDateString(req.endDate);
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <span class="inline-flex px-2.5 py-1 text-xs font-bold bg-amber-50 text-amber-700 rounded-full mb-1">
+                  <i class="fa-solid fa-file-invoice mr-1.5 mt-0.5"></i> ${req.id}
+                </span>
+                <h4 class="text-base font-bold text-slate-800">${req.residentName}</h4>
+                <p class="text-slate-400 text-xs font-medium">ปีการศึกษา: ปี ${req.year} | วนแผนก: ${req.department}</p>
+              </div>
+              <span class="inline-flex px-3 py-1 text-xs font-bold bg-primary-50 text-primary-700 rounded-lg">
+                ${req.typeName}
+              </span>
+            </div>
+            
+            <div class="space-y-2 border-t border-slate-100 pt-3.5 text-xs font-semibold text-slate-600">
+              <div class="flex justify-between">
+                <span class="text-slate-400">วันที่ลา:</span>
+                <span>${startStr} - ${endStr} (${req.totalDays} วัน)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">เหตุผลการลา:</span>
+                <span class="text-slate-900 font-bold">${req.reason}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">ผู้สลับเวรปฏิบัติแทน:</span>
+                <span>${req.substituteName || 'ไม่มี'}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">การติดต่อระหว่างลา:</span>
+                <span>${req.contactAddress} | โทร: ${req.phoneNumber}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex space-x-2.5 pt-4 border-t border-slate-50">
+            <button onclick="openRejectModal('${req.id}')" class="flex-1 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 text-xs font-bold rounded-xl transition-colors flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span>ปฏิเสธ</span>
+            </button>
+            <button onclick="approveRequest('${req.id}')" class="flex-1 py-2.5 bg-teal-600 text-white hover:bg-teal-700 text-xs font-bold rounded-xl transition-all shadow-md shadow-teal-600/10 flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>อนุมัติการลา</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderMentorHistory(list) {
+      const tbody = document.getElementById('mentorHistoryBody');
+      const noHistory = document.getElementById('noMentorHistoryMsg');
+      tbody.innerHTML = '';
+      
+      document.getElementById('mentorHistoryCount').textContent = `${list.length} รายการ`;
+      
+      if (!list || list.length === 0) {
+        noHistory.classList.remove('hidden');
+        return;
+      }
+      noHistory.classList.add('hidden');
+      
+      list.forEach(req => {
+        loadedRequestsMap[req.id] = req;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+        
+        let statusBadge = '';
+        const status = req.status;
+        if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-teal-50 text-teal-700 rounded-full"><i class="fa-solid fa-circle-check mr-1 mt-0.5"></i> อนุมัติ</span>';
+        } else if (status === 'ปฏิเสธ' || status === 'Rejected') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-rose-50 text-rose-700 rounded-full"><i class="fa-solid fa-circle-xmark mr-1 mt-0.5"></i> ปฏิเสธ</span>';
+        } else if (status === 'ยกเลิกแล้ว') {
+          statusBadge = '<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-400 rounded-full"><i class="fa-solid fa-ban mr-1 mt-0.5"></i> ยกเลิกแล้ว</span>';
+        } else {
+          statusBadge = `<span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-slate-50 text-slate-700 rounded-full">${status}</span>`;
+        }
+        
+        let actionButtons = '-';
+        if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          actionButtons = `
+            <button onclick="openMentorEditModal('${req.id}')" class="px-2.5 py-1 text-xs font-bold text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-teal-100 flex items-center space-x-1 mx-auto">
+              <i class="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
+            </button>
+          `;
+        }
+        
+        const startStr = formatDateString(req.startDate);
+        const endStr = formatDateString(req.endDate);
+        
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-bold text-slate-700">${req.id}</td>
+          <td class="px-6 py-4 text-slate-900">${req.residentName} <span class="text-xs text-slate-400 font-medium">ชั้นปี ${req.year}</span></td>
+          <td class="px-6 py-4"><span class="text-xs font-bold uppercase py-0.5 px-2 bg-slate-100 text-slate-600 rounded-md">${req.typeName}</span></td>
+          <td class="px-6 py-4 text-xs text-slate-500">${startStr} - ${endStr}</td>
+          <td class="px-6 py-4 text-center font-bold text-slate-900">${req.totalDays}</td>
+          <td class="px-6 py-4 text-center">${statusBadge}</td>
+          <td class="px-6 py-4 text-slate-500 text-xs font-semibold max-w-xs truncate" title="${req.rejectReason || '-'}">${req.rejectReason || '-'}</td>
+          <td class="px-6 py-4 text-center">${actionButtons}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function approveRequest(requestId) {
+      if (!confirm(`ยืนยันการอนุมัติใบลาหมายเลข ${requestId} หรือไม่?`)) return;
+      
+      setGlobalLoading(true, "กำลังอนุมัติใบลาพร้อมคำนวณวันลาคงเหลือ...");
+      
+      try {
+        const response = await callBackend('approveOrRejectLeaveRequest', requestId, 'Approved', currentUserEmail, '');
+        setGlobalLoading(false);
+        if (response.success) {
+          showToast(response.message, 'success');
+          loadMentorPortal();
+        } else {
+          showToast(response.message, 'error');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการทำรายการ: " + err.toString(), 'error');
+      }
+    }
+
+    function openRejectModal(requestId) {
+      selectedRequestIdForRejection = requestId;
+      document.getElementById('rejectReasonText').value = '';
+      document.getElementById('rejectModal').classList.remove('hidden');
+    }
+    
+    function closeRejectModal() {
+      document.getElementById('rejectModal').classList.add('hidden');
+      selectedRequestIdForRejection = null;
+    }
+
+    async function submitRejection() {
+      const reason = document.getElementById('rejectReasonText').value.trim();
+      if (!reason) {
+        showToast("กรุณากรอกเหตุผลการปฏิเสธ", "error");
+        return;
+      }
+      
+      const reqId = selectedRequestIdForRejection;
+      closeRejectModal();
+      setGlobalLoading(true, "กำลังปฏิเสธการลา...");
+      
+      try {
+        const response = await callBackend('approveOrRejectLeaveRequest', reqId, 'Rejected', currentUserEmail, reason);
+        setGlobalLoading(false);
+        if (response.success) {
+          showToast(response.message, 'success');
+          loadMentorPortal();
+        } else {
+          showToast(response.message, 'error');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการทำรายการ: " + err.toString(), 'error');
+      }
+    }
+
+    // ================= MENTOR DASHBOARD & DRILLDOWN LOGIC =================
+
+    async function loadMentorDashboard() {
+      setGlobalLoading(true, "กำลังดึงสถิติวันลาแพทย์ประจำบ้านทั้งหมด...");
+      
+      try {
+        const list = await callBackend('getMentorDashboardData', currentUserEmail);
+        loadedMentorDashboardData = list;
+        loadedMentorResidentsList = list.map(r => ({ id: r.id, name: r.name, email: r.email }));
+        
+        renderMentorDashboardList(list);
+        setGlobalLoading(false);
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("ไม่สามารถโหลดสถิติการลาได้: " + err.toString(), 'error');
+      }
+    }
+
+    function renderMentorDashboardList(list) {
+      const tbody = document.getElementById('mentorDashboardBody');
+      const noRes = document.getElementById('noDashboardResidentsMsg');
+      tbody.innerHTML = '';
+      
+      if (!list || list.length === 0) {
+        noRes.classList.remove('hidden');
+        return;
+      }
+      noRes.classList.add('hidden');
+      
+      list.forEach(res => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 cursor-pointer transition-colors border-b border-slate-100 group text-xs";
+        
+        const rem = Math.max(0, res.vacationLimit - res.vacationUsed);
+        const pct = res.vacationLimit > 0 ? (res.vacationUsed / res.vacationLimit) * 100 : 0;
+        
+        const pendingPill = res.pendingCount > 0 
+          ? `<span class="inline-flex px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-bold rounded-full animate-pulse">${res.pendingCount} รายการ</span>`
+          : `<span class="text-slate-300 text-xs">-</span>`;
+        
+        tr.innerHTML = `
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 font-bold text-slate-700">${res.id}</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 font-bold text-slate-900 group-hover:text-primary-600 transition-colors text-sm">${res.name}</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 text-center font-bold text-slate-700">ปี ${res.year}</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 text-slate-600 font-semibold">${res.mentorName || '-'}</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 min-w-[180px]">
+            <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+              <span>เหลือ ${rem} วัน</span>
+              <span>ใช้ ${res.vacationUsed}/${res.vacationLimit}</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div class="bg-teal-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 text-center font-extrabold text-slate-800 text-sm">${res.sickUsed} วัน</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 text-center font-extrabold text-slate-800 text-sm">${res.personalUsed} วัน</td>
+          <td onclick="openDrilldownModal('${res.id}')" class="px-6 py-4 text-center">${pendingPill}</td>
+          <td class="px-6 py-4 text-center">
+            <button onclick="openDrilldownModal('${res.id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-primary-600 hover:text-white text-slate-600 font-bold rounded-xl text-xs transition-all shadow-sm flex items-center space-x-1 mx-auto">
+              <i class="fa-solid fa-list-ul"></i> <span>ประวัติละเอียด</span>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterDashboardResidents() {
+      const query = document.getElementById('mentorSearchResident').value.trim().toLowerCase();
+      if (!loadedMentorDashboardData) return;
+      
+      const filtered = loadedMentorDashboardData.filter(res => {
+        return res.name.toLowerCase().includes(query) || 
+               res.id.toLowerCase().includes(query) || 
+               String(res.year).includes(query) ||
+               (res.mentorName && res.mentorName.toLowerCase().includes(query));
+      });
+      
+      renderMentorDashboardList(filtered);
+    }
+
+    async function openDrilldownModal(residentId) {
+      if (!loadedMentorDashboardData) return;
+      
+      const res = loadedMentorDashboardData.find(r => r.id === residentId);
+      if (!res) return;
+      
+      currentDrilldownResident = res;
+      setGlobalLoading(true, `กำลังดึงรายละเอียดการลาของ ${res.name}...`);
+      
+      try {
+        document.getElementById('drilldownResidentName').textContent = res.name;
+        document.getElementById('drilldownResidentMeta').textContent = `รหัสแพทย์: ${res.id} | ชั้นปี: ปี ${res.year} | อาจารย์ที่ปรึกษา: ${res.mentorName || '-'} | อีเมล: ${res.email}`;
+        
+        const rem = Math.max(0, res.vacationLimit - res.vacationUsed);
+        document.getElementById('drilldownVacationRemaining').textContent = rem;
+        document.getElementById('drilldownVacationUsed').textContent = res.vacationUsed;
+        document.getElementById('drilldownVacationLimit').textContent = res.vacationLimit;
+        
+        document.getElementById('drilldownSickUsed').textContent = res.sickUsed;
+        document.getElementById('drilldownPersonalUsed').textContent = res.personalUsed;
+        
+        const list = await callBackend('getResidentLeaveHistoryForMentor', residentId);
+        currentDrilldownHistory = list;
+        
+        renderDrilldownHistoryList(list);
+        setGlobalLoading(false);
+        document.getElementById('drilldownModal').classList.remove('hidden');
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("ไม่สามารถเรียกประวัติการลาได้: " + err.toString(), 'error');
+      }
+    }
+
+    function renderDrilldownHistoryList(list) {
+      const tbody = document.getElementById('drilldownHistoryBody');
+      const noHistory = document.getElementById('noDrilldownHistoryMsg');
+      tbody.innerHTML = '';
+      
+      document.getElementById('drilldownHistoryCount').textContent = `${list.length} รายการ`;
+      
+      if (!list || list.length === 0) {
+        noHistory.classList.remove('hidden');
+        return;
+      }
+      noHistory.classList.add('hidden');
+      
+      list.forEach(req => {
+        loadedRequestsMap[req.id] = req;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 border-b border-slate-100 text-xs";
+        
+        let statusBadge = '';
+        const status = req.status;
+        if (status === 'รออนุมัติ' || status === 'Pending Approval') {
+          statusBadge = '<span class="inline-flex px-2 py-0.5 font-bold bg-amber-50 text-amber-700 rounded-md">รออนุมัติ</span>';
+        } else if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          statusBadge = '<span class="inline-flex px-2 py-0.5 font-bold bg-teal-50 text-teal-700 rounded-md">อนุมัติแล้ว</span>';
+        } else if (status === 'ปฏิเสธ' || status === 'Rejected') {
+          statusBadge = `<span title="เหตุผล: ${req.rejectReason || '-'}" class="cursor-help inline-flex px-2 py-0.5 font-bold bg-rose-50 text-rose-700 rounded-md">ปฏิเสธ</span>`;
+        } else if (status === 'ยกเลิกแล้ว') {
+          statusBadge = '<span class="inline-flex px-2 py-0.5 font-bold bg-slate-100 text-slate-400 rounded-md">ยกเลิกแล้ว</span>';
+        }
+        
+        let actionButtons = '-';
+        if (status === 'อนุมัติแล้ว' || status === 'Approved') {
+          actionButtons = `
+            <button onclick="openMentorEditModal('${req.id}')" class="px-2 py-0.5 font-bold text-teal-600 hover:bg-teal-50 rounded border border-teal-100 flex items-center space-x-0.5 mx-auto">
+              <i class="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
+            </button>
+          `;
+        }
+        
+        const startStr = formatDateString(req.startDate);
+        const endStr = formatDateString(req.endDate);
+        
+        tr.innerHTML = `
+          <td class="px-5 py-3.5 font-bold text-slate-500">${req.id}</td>
+          <td class="px-5 py-3.5 font-bold text-sm text-slate-800">${req.typeName}</td>
+          <td class="px-5 py-3.5 font-semibold text-slate-400">${startStr} - ${endStr}</td>
+          <td class="px-5 py-3.5 text-center font-bold text-slate-900 text-sm">${req.totalDays}</td>
+          <td class="px-5 py-3.5 text-slate-500 max-w-[200px] truncate" title="${req.reason}">${req.reason}</td>
+          <td class="px-5 py-3.5 text-slate-400">
+            ${req.status === 'อนุมัติแล้ว' ? 'อนุมัติโดย: ' + (req.approvedBy || '-') : ''}
+            ${req.status === 'ปฏิเสธ' ? 'ปฏิเสธโดย: ' + (req.approvedBy || '-') : ''}
+            ${req.status === 'รออนุมัติ' ? 'แทนเวร: ' + (req.substituteName || '-') : ''}
+            ${req.status === 'ยกเลิกแล้ว' ? 'ยกเลิกโดยผู้ลา' : ''}
+          </td>
+          <td class="px-5 py-3.5 text-center">${statusBadge}</td>
+          <td class="px-5 py-3.5 text-center">${actionButtons}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function closeDrilldownModal() {
+      document.getElementById('drilldownModal').classList.add('hidden');
+    }
+
+    // ================= MENTOR EDIT MODE FUNCTIONS =================
+    
+    function onMentorEditTypeChange() {
+      calculateMentorEditDuration();
+    }
+
+    function calculateMentorEditDuration() {
+      const start = document.getElementById('mentorEditStartDate').value;
+      const end = document.getElementById('mentorEditEndDate').value;
+      if (!start || !end) return;
+      
+      const sDate = new Date(start);
+      const eDate = new Date(end);
+      
+      if (eDate < sDate) {
+        document.getElementById('mentorEditEndDate').value = start;
+        document.getElementById('mentorEditTotalDays').textContent = "1";
+        return;
+      }
+      
+      const diffTime = Math.abs(eDate - sDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      document.getElementById('mentorEditTotalDays').textContent = diffDays;
+    }
+
+    function openMentorEditModal(requestId) {
+      const req = loadedRequestsMap[requestId];
+      if (!req) {
+        showToast("ไม่พบข้อมูลใบลาสำหรับการแก้ไข", "error");
+        return;
+      }
+      
+      document.getElementById('mentorEditRequestId').value = req.id;
+      document.getElementById('mentorEditRequestIdDisplay').textContent = req.id;
+      document.getElementById('mentorEditResidentInfo').textContent = `${req.residentName || req.profile?.name || '-'} (รหัส: ${req.residentId || req.profile?.id || '-'})`;
+      
+      document.getElementById('mentorEditLeaveType').value = req.type;
+      document.getElementById('mentorEditDepartment').value = req.department || '';
+      document.getElementById('mentorEditReason').value = req.reason || '';
+      
+      // Populate substitute select
+      const subSelect = document.getElementById('mentorEditSubstitute');
+      subSelect.innerHTML = '<option value="">-- เลือกผู้สลับเวร (ถ้ามี) --</option>';
+      if (loadedMentorResidentsList && loadedMentorResidentsList.length > 0) {
+        loadedMentorResidentsList.forEach(r => {
+          if (r.id !== req.residentId) {
+            subSelect.innerHTML += `<option value="${r.id}">${r.name} (${r.id})</option>`;
+          }
+        });
+      }
+      subSelect.value = req.substituteId || '';
+      
+      document.getElementById('mentorEditContactAddress').value = req.contactAddress || '';
+      document.getElementById('mentorEditPhoneNumber').value = req.phoneNumber || '';
+      
+      if (req.startDate) {
+        document.getElementById('mentorEditStartDate').value = new Date(req.startDate).toISOString().split('T')[0];
+      }
+      if (req.endDate) {
+        document.getElementById('mentorEditEndDate').value = new Date(req.endDate).toISOString().split('T')[0];
+      }
+      
+      calculateMentorEditDuration();
+      document.getElementById('mentorEditModal').classList.remove('hidden');
+    }
+
+    function closeMentorEditModal() {
+      document.getElementById('mentorEditModal').classList.add('hidden');
+    }
+
+    async function handleMentorEditSubmit(e) {
+      e.preventDefault();
+      
+      const requestId = document.getElementById('mentorEditRequestId').value;
+      const type = document.getElementById('mentorEditLeaveType').value;
+      const department = document.getElementById('mentorEditDepartment').value.trim();
+      const startDate = document.getElementById('mentorEditStartDate').value;
+      const endDate = document.getElementById('mentorEditEndDate').value;
+      const totalDays = Number(document.getElementById('mentorEditTotalDays').textContent);
+      const reason = document.getElementById('mentorEditReason').value.trim();
+      const substituteId = document.getElementById('mentorEditSubstitute').value;
+      const contactAddress = document.getElementById('mentorEditContactAddress').value.trim();
+      const phoneNumber = document.getElementById('mentorEditPhoneNumber').value.trim();
+      
+      const data = {
+        type: type,
+        department: department,
+        startDate: startDate,
+        endDate: endDate,
+        totalDays: totalDays,
+        reason: reason,
+        substituteId: substituteId,
+        contactAddress: contactAddress,
+        phoneNumber: phoneNumber
+      };
+      
+      closeMentorEditModal();
+      setGlobalLoading(true, "กำลังบันทึกการแก้ไขและปรับยอดวันลา...");
+      
+      try {
+        const response = await callBackend('mentorEditApprovedRequest', requestId, data, currentUserEmail);
+        setGlobalLoading(false);
+        if (response.success) {
+          showToast(response.message, 'success');
+          loadMentorPortal();
+          closeDrilldownModal();
+        } else {
+          showToast(response.message, 'error');
+          document.getElementById('mentorEditModal').classList.remove('hidden');
+        }
+      } catch (err) {
+        setGlobalLoading(false);
+        showToast("เกิดข้อผิดพลาดในการทำรายการ: " + err.toString(), 'error');
+        document.getElementById('mentorEditModal').classList.remove('hidden');
+      }
+    }
+
+    // ================= PRINT & PDF EXPORT LOGIC =================
+
+    function printResidentPortalReport() {
+      if (!loadedResidentData || !loadedResidentData.profile) {
+        showToast("ไม่พบข้อมูลรายงานสำหรับพิมพ์", "error");
+        return;
+      }
+      generatePrintReport(loadedResidentData.profile, loadedResidentData.history);
+    }
+
+    function printDrilldownReport() {
+      if (!currentDrilldownResident || !currentDrilldownHistory) {
+        showToast("ไม่พบข้อมูลรายงานสำหรับพิมพ์", "error");
+        return;
+      }
+      generatePrintReport(currentDrilldownResident, currentDrilldownHistory);
+    }
+
+    function generatePrintReport(profile, historyList) {
+      const printContainer = document.getElementById('printContainer');
+      if (!printContainer) return;
+      
+      const today = new Date();
+      const thaiDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear() + 543}`;
+      
+      let historyRows = '';
+      if (historyList && historyList.length > 0) {
+        historyList.forEach(req => {
+          const start = formatDateString(req.startDate);
+          const end = formatDateString(req.endDate);
+          let statusText = req.status;
+          if (req.status === 'อนุมัติแล้ว' || req.status === 'Approved') {
+            statusText = 'อนุมัติแล้ว';
+          } else if (req.status === 'รออนุมัติ' || req.status === 'Pending Approval') {
+            statusText = 'รออนุมัติ';
+          } else if (req.status === 'ปฏิเสธ' || req.status === 'Rejected') {
+            statusText = `ปฏิเสธ (${req.rejectReason || '-'})`;
+          } else if (req.status === 'ยกเลิกแล้ว') {
+            statusText = 'ยกเลิกแล้ว';
+          }
+          
+          historyRows += `
+            <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px;">
+              <td style="padding: 6px 8px; font-weight: bold;">${req.id}</td>
+              <td style="padding: 6px 8px;">${req.typeName}</td>
+              <td style="padding: 6px 8px;">${start} - ${end}</td>
+              <td style="padding: 6px 8px; text-align: center; font-weight: bold;">${req.totalDays}</td>
+              <td style="padding: 6px 8px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${req.reason || '-'}</td>
+              <td style="padding: 6px 8px;">${req.status === 'รออนุมัติ' ? 'แทนเวร: ' + (req.substituteName || '-') : 'พิจารณาโดย: ' + (req.approvedBy || req.mentorName || '-')}</td>
+              <td style="padding: 6px 8px; font-weight: bold; text-align: center;">${statusText}</td>
+            </tr>
+          `;
+        });
+      } else {
+        historyRows = `
+          <tr>
+            <td colspan="7" style="padding: 16px; text-align: center; color: #94a3b8;">ยังไม่พบประวัติการขอลา</td>
+          </tr>
+        `;
+      }
+      
+      const remVacation = Math.max(0, profile.vacationLimit - profile.vacationUsed);
+      
+      printContainer.innerHTML = `
+        <div style="padding: 30px; max-width: 800px; margin: 0 auto; background: white; color: black; font-family: 'Sarabun', 'Helvetica Neue', Arial, sans-serif; line-height: 1.5;">
+          <!-- Report Header -->
+          <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+            <h1 style="font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase;">รายงานข้อมูลการลาของแพทย์ประจำบ้าน</h1>
+            <p style="font-size: 14px; font-weight: bold; margin: 5px 0 0 0;">กองฝึกอบรมแพทย์ประจำบ้านเวชศาสตร์ครอบครัว (Family Medicine Residency Training Program)</p>
+            <p style="font-size: 11px; color: #475569; margin: 2px 0 0 0;">วันที่ออกรายงาน: ${thaiDate}</p>
+          </div>
+          
+          <!-- Resident Info -->
+          <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px;">
+            <div style="flex: 1;">
+              <p style="margin: 3px 0;"><strong>ชื่อ-นามสกุล:</strong> ${profile.name}</p>
+              <p style="margin: 3px 0;"><strong>รหัสแพทย์ประจำบ้าน:</strong> ${profile.id}</p>
+              <p style="margin: 3px 0;"><strong>ชั้นปีการศึกษา:</strong> ชั้นปีที่ ${profile.year}</p>
+            </div>
+            <div style="flex: 1; text-align: right;">
+              <p style="margin: 3px 0;"><strong>อีเมลติดต่อ:</strong> ${profile.email || '-'}</p>
+              <p style="margin: 3px 0;"><strong>อาจารย์ที่ปรึกษา:</strong> ${profile.mentorName || '-'}</p>
+            </div>
+          </div>
+          
+          <!-- Summary Balances -->
+          <div style="margin-bottom: 25px;">
+            <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #94a3b8; padding-bottom: 4px; margin-bottom: 10px;">สรุปยอดวันลาสะสมประจำปี</h3>
+            <table style="width: 100%; text-align: left; font-size: 13px; border: 1px solid #cbd5e1; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; font-weight: bold;">
+                  <th style="padding: 8px; border-right: 1px solid #cbd5e1;">ประเภทการลา</th>
+                  <th style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">สิทธิ์สูงสุด (วัน)</th>
+                  <th style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">ใช้ไปแล้ว (วัน)</th>
+                  <th style="padding: 8px; text-align: center;">คงเหลือล่าสุด (วัน)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid #cbd5e1;">
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; font-weight: bold;">ลาพักร้อน / พักผ่อน</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.vacationLimit}</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.vacationUsed}</td>
+                  <td style="padding: 8px; text-align: center; font-weight: bold; color: #0d9488;">${remVacation}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #cbd5e1;">
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; font-weight: bold;">ลาป่วย</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">-</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.sickUsed || 0}</td>
+                  <td style="padding: 8px; text-align: center;">-</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #cbd5e1;">
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; font-weight: bold;">ลากิจ</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">-</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.personalUsed || 0}</td>
+                  <td style="padding: 8px; text-align: center;">-</td>
+                </tr>
+                ${profile.maternityUsed > 0 ? `
+                <tr style="border-bottom: 1px solid #cbd5e1;">
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; font-weight: bold;">ลาคลอด</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">-</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.maternityUsed}</td>
+                  <td style="padding: 8px; text-align: center;">-</td>
+                </tr>
+                ` : ''}
+                ${profile.militaryUsed > 0 ? `
+                <tr style="border-bottom: 1px solid #cbd5e1;">
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; font-weight: bold;">ลาเกณฑ์ทหาร</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">-</td>
+                  <td style="padding: 8px; border-right: 1px solid #cbd5e1; text-align: center;">${profile.militaryUsed}</td>
+                  <td style="padding: 8px; text-align: center;">-</td>
+                </tr>
+                ` : ''}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Detailed History Table -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #94a3b8; padding-bottom: 4px; margin-bottom: 10px;">ประวัติรายการขอลาทั้งหมด</h3>
+            <table style="width: 100%; text-align: left; font-size: 11px; border: 1px solid #cbd5e1; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; font-weight: bold;">
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1;">รหัสใบลา</th>
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1;">ประเภทการลา</th>
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1;">วันที่ลา</th>
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; text-align: center;">จำนวนวัน</th>
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1;">เหตุผลการลา</th>
+                  <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1;">ผู้แทนเวร/ผู้พิจารณา</th>
+                  <th style="padding: 6px 8px; text-align: center;">สถานะใบลา</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${historyRows}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Signatures Section -->
+          <div style="display: flex; justify-content: space-between; margin-top: 60px; font-size: 13px;">
+            <div style="text-align: center; width: 45%;">
+              <p style="margin-bottom: 50px;">ลงชื่อ ...................................................... แพทย์ผู้ลา</p>
+              <p>( ${profile.name} )</p>
+              <p style="margin-top: 5px; font-size: 11px; color: #475569;">แพทย์ประจำบ้านเวชศาสตร์ครอบครัว</p>
+            </div>
+            <div style="text-align: center; width: 45%;">
+              <p style="margin-bottom: 50px;">ลงชื่อ ...................................................... อาจารย์ผู้รับรอง</p>
+              <p>( ...................................................... )</p>
+              <p style="margin-top: 5px; font-size: 11px; color: #475569;">อาจารย์ที่ปรึกษา / ผู้อำนวยการแผนกฝึกอบรม</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      window.print();
+    }
+
+    // ================= UTILITIES & MOCKING =================
+
+    function formatDateString(isoString) {
+      if (!isoString) return '-';
+      try {
+        const d = new Date(isoString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear() + 543;
+        return `${day}/${month}/${year}`;
+      } catch (e) {
+        return isoString;
+      }
+    }
+
+    function mockBackendResponse(funcName, args, resolve, reject) {
+      const dummyMentors = [
+        { id: 'M01', name: 'รศ.พญ.สุดารัตน์ พรหมดี', email: 'sudarat.p@gmail.com' },
+        { id: 'M02', name: 'ผศ.นพ.ประจักษ์ ศิริรักษ์', email: 'prajak.s@gmail.com' }
+      ];
+      const dummyResidents = [
+        { id: 'RFM2567-01', name: 'พญ.ภานิชา ผิวสุข', year: 3, vacationLimit: 10, vacationUsed: 3, sickUsed: 1, personalUsed: 0, email: 'praew0pani11@gmail.com', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี', mentorEmail: 'sudarat.p@gmail.com' },
+        { id: 'RFM2567-02', name: 'พญ.อัญธิกา วงศ์สัมพันธ์ชัย', year: 3, vacationLimit: 10, vacationUsed: 0, sickUsed: 0, personalUsed: 0, email: 'unun23pnii@gmail.com', mentorName: 'ผศ.นพ.ประจักษ์ ศิริรักษ์', mentorEmail: 'prajak.s@gmail.com' }
+      ];
+      
+      const email = args[0] || '';
+      
+      if (funcName === 'checkUserRole') {
+        const lowerEmail = email.toLowerCase();
+        if (lowerEmail === 'sudarat.p@gmail.com') {
+          resolve({ success: true, role: 'mentor', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี' });
+        } else if (lowerEmail === 'praew0pani11@gmail.com' || lowerEmail === 'test@test.com') {
+          resolve({ success: true, role: 'resident', residentProfile: dummyResidents[0] });
+        } else if (lowerEmail === 'both@test.com') {
+          resolve({ success: true, role: 'both', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี', residentProfile: dummyResidents[0] });
+        } else {
+          resolve({ success: false, message: "ไม่พบอีเมลในระบบจำลอง" });
+        }
+      } 
+      else if (funcName === 'getResidentData') {
+        resolve({
+          profile: dummyResidents[0],
+          history: [
+            { id: 'LR-20260610-1282', type: 'vacation', typeName: 'ลาพักร้อน', startDate: '2026-06-12T00:00:00.000Z', endDate: '2026-06-15T00:00:00.000Z', totalDays: 3, reason: 'พักผ่อนประจำปีต่างจังหวัด', substituteId: 'RFM2567-02', substituteName: 'พญ.อัญธิกา วงศ์สัมพันธ์ชัย', status: 'อนุมัติแล้ว', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี', mentorEmail: 'sudarat.p@gmail.com', department: 'IPD', contactAddress: 'โรงแรมที่พัก', phoneNumber: '0899999999' },
+            { id: 'LR-20260618-9311', type: 'sick', typeName: 'ลาป่วย', startDate: '2026-06-19T00:00:00.000Z', endDate: '2026-06-19T00:00:00.000Z', totalDays: 1, reason: 'ปวดศีรษะ ไข้สูง', substituteId: '', substituteName: '', status: 'รออนุมัติ', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี', mentorEmail: 'sudarat.p@gmail.com', department: 'OPD', contactAddress: 'บ้านพักโรงพยาบาล', phoneNumber: '0812345678' }
+          ],
+          residentsList: dummyResidents,
+          mentorsList: dummyMentors
+        });
+      }
+      else if (funcName === 'getMentorData') {
+        resolve({
+          pending: [
+            { id: 'LR-20260618-9311', residentId: 'RFM2567-01', residentName: 'พญ.ภานิชา ผิวสุข', year: 3, department: 'OPD', type: 'sick', typeName: 'ลาป่วย', startDate: '2026-06-19T00:00:00.000Z', endDate: '2026-06-19T00:00:00.000Z', totalDays: 1, reason: 'ไข้สูง ปวดศีรษะ', substituteId: '', substituteName: 'ไม่มี', contactAddress: 'บ้านพักโรงพยาบาล', phoneNumber: '0812345678', status: 'รออนุมัติ', mentorEmail: 'sudarat.p@gmail.com' }
+          ],
+          history: [
+            { id: 'LR-20260610-1282', residentId: 'RFM2567-01', residentName: 'พญ.ภานิชา ผิวสุข', year: 3, type: 'vacation', typeName: 'ลาพักร้อน', startDate: '2026-06-12T00:00:00.000Z', endDate: '2026-06-15T00:00:00.000Z', totalDays: 3, status: 'อนุมัติแล้ว', rejectReason: '', reason: 'พักผ่อนประจำปีต่างจังหวัด', substituteId: 'RFM2567-02', substituteName: 'พญ.อัญธิกา วงศ์สัมพันธ์ชัย', contactAddress: 'โรงแรมที่พัก', phoneNumber: '0899999999', department: 'IPD' }
+          ],
+          residentsList: dummyResidents
+        });
+      }
+      else if (funcName === 'getMentorDashboardData') {
+        resolve([
+          { id: 'RFM2567-01', name: 'พญ.ภานิชา ผิวสุข', year: 3, vacationLimit: 10, vacationUsed: 3, sickUsed: 1, personalUsed: 0, email: 'praew0pani11@gmail.com', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี', pendingCount: 1 },
+          { id: 'RFM2567-02', name: 'พญ.อัญธิกา วงศ์สัมพันธ์ชัย', year: 3, vacationLimit: 10, vacationUsed: 0, sickUsed: 0, personalUsed: 0, email: 'unun23pnii@gmail.com', mentorName: 'ผศ.นพ.ประจักษ์ ศิริรักษ์', pendingCount: 0 }
+        ]);
+      }
+      else if (funcName === 'getResidentLeaveHistoryForMentor') {
+        resolve([
+          { id: 'LR-20260610-1282', residentId: 'RFM2567-01', residentName: 'พญ.ภานิชา ผิวสุข', year: 3, type: 'vacation', typeName: 'ลาพักร้อน', startDate: '2026-06-12T00:00:00.000Z', endDate: '2026-06-15T00:00:00.000Z', totalDays: 3, reason: 'พักผ่อนประจำปีต่างจังหวัด', substituteId: 'RFM2567-02', substituteName: 'พญ.อัญธิกา วงศ์สัมพันธ์ชัย', status: 'อนุมัติแล้ว', approvedBy: 'รศ.พญ.สุดารัตน์ พรหมดี', contactAddress: 'โรงแรมที่พัก', phoneNumber: '0899999999', department: 'IPD' },
+          { id: 'LR-20260618-9311', residentId: 'RFM2567-01', residentName: 'พญ.ภานิชา ผิวสุข', year: 3, type: 'sick', typeName: 'ลาป่วย', startDate: '2026-06-19T00:00:00.000Z', endDate: '2026-06-19T00:00:00.000Z', totalDays: 1, reason: 'ปวดศีรษะ ไข้สูง', substituteId: '', substituteName: '', status: 'รออนุมัติ', mentorName: 'รศ.พญ.สุดารัตน์ พรหมดี' }
+        ]);
+      }
+      else if (funcName === 'submitLeaveRequest') {
+        resolve({ success: true, message: "[MOCK] ยื่นใบลาในระบบจำลองสำเร็จ" });
+      }
+      else if (funcName === 'editLeaveRequest') {
+        resolve({ success: true, message: "[MOCK] บันทึกการแก้ไขข้อมูลใบลาจำลองสำเร็จ" });
+      }
+      else if (funcName === 'cancelLeaveRequest') {
+        resolve({ success: true, message: "[MOCK] ยกเลิกใบลาจำลองสำเร็จ" });
+      }
+      else if (funcName === 'approveOrRejectLeaveRequest') {
+        resolve({ success: true, message: "[MOCK] ดำเนินการอนุมัติ/ปฏิเสธสำเร็จ" });
+      }
+      else if (funcName === 'mentorEditApprovedRequest') {
+        resolve({ success: true, message: "[MOCK] อาจารย์ทำการแก้ไขใบลาที่อนุมัติแล้วเสร็จสมบูรณ์ ยอดสิทธิ์วันลาคงเหลือได้รับการปรับตามข้อมูลใหม่แล้ว" });
+      }
+    }
+  </script>
+  <div id="printContainer" class="hidden"></div>
+</body>
+</html>
